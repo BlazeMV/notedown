@@ -1,5 +1,6 @@
 package dev.blaze.notedown.gui;
 
+import dev.blaze.notedown.ui.Messages;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.level.ChunkPos;
@@ -28,7 +29,7 @@ public final class GameInfo {
             String langKey = key.identifier().toLanguageKey("biome");
             String name = I18n.get(langKey);
             return name.equals(langKey) ? prettify(key.identifier().getPath()) : name;
-        }).orElse("Unknown");
+        }).orElseGet(() -> Messages.t("biome.unknown").getString());
     }
 
     static String prettify(String path) {

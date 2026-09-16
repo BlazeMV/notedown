@@ -84,6 +84,9 @@ public final class EditScreen extends Screen {
 
     @Override
     protected void init() {
+        if (bodyArea != null) {
+            cursor = bodyArea.cursor();
+        }
         int x = Theme.MARGIN;
         int y = TOP;
         addRenderableWidget(new FlatButton(x, y, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.save"), this::saveAndClose));
@@ -183,7 +186,7 @@ public final class EditScreen extends Screen {
 
     private void toggleTaskInPreview(int line) {
         String toggled = TaskToggler.toggleLine(body, line);
-        bodyArea.replaceAll(toggled, Math.min(cursor, toggled.length()));
+        bodyArea.replaceAll(toggled, Math.min(bodyArea.cursor(), toggled.length()));
         preview.setBody(body);
     }
 

@@ -8,6 +8,7 @@
   "notedown.scope.global": "Global",
   "notedown.scope.local": "World",
   "notedown.scope.server": "Server",
+  "notedown.biome.unknown": "Unknown biome",
   "notedown.button.new": "New",
   "notedown.button.import": "Import…",
   "notedown.button.settings": "Settings",

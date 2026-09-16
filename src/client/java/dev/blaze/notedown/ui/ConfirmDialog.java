@@ -29,6 +29,9 @@ public final class ConfirmDialog extends Screen {
     }
 
     public static void openLink(Screen parent, String url) {
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            return;
+        }
         Minecraft mc = Minecraft.getInstance();
         mc.gui.setScreen(new ConfirmDialog(parent, Messages.t("dialog.link_title"), Messages.t("dialog.link_body", url),
                 Messages.t("button.open"), () -> Util.getPlatform().openUri(url)));
