@@ -50,7 +50,7 @@ Modelled on Sodium's video settings and Notes; written from scratch (Sodium is P
 | Spacing | button height 20, inner margin 5, text left padding 8, list row 24, scrollbar 7 wide, paragraph gap 4, line gap 2 |
 | Background | vanilla blurred screen background |
 
-Widgets: `FlatButton` (flat fill, hover-lit, optional icon), `IconButton`, `FlatTextField`, `FlatTextArea` (extends `MultiLineEditBox` via AW; overrides background/border/decorations), `FlatList` + `Scrollbar`, `Toggle` (tick box), `Slider`, `SearchField`, `Panel`, `ConfirmDialog`, `LayoutRenderer` (draws a markdown `Layout` with a clip rect).
+Widgets: `FlatButton` (flat fill, hover-lit), `FlatTextField` (also the search field, via a hint), `FlatTextArea` (extends `MultiLineEditBox` via AW; overrides background/border/scrollbar), `FlatList` + `Scroller` (pure scroll math, `Theme.scrollbar` draws it), `Toggle` (tick box), `Slider`, `ConfirmDialog`, `LayoutRenderer` (draws a markdown `Layout` with a clip rect), `Messages` (i18n helper).
 
 ## Storage (`store`, `scope`)
 
@@ -94,8 +94,8 @@ Supported:
 Pipeline:
 1. `MarkdownParser`: commonmark + task-list + strikethrough, source spans on. Never throws.
 2. `Layouter.layout(doc, width, scale, LayoutOptions, TextMeasure)` → immutable `Layout { lines, hitBoxes, height }`. `Line { x, y, runs, decoration }`, `Run { text, style, x }`, `HitBox { rect, TASK(index) | LINK(url) }`. Greedy word wrap with per-style widths; over-long words break per character. Headings measured at scale.
-3. `TaskToggler.toggle(source, taskIndex)` flips `[ ]` ↔ `[x]` on the task item's first source line; nothing else changes. Task index = document order of task items.
-4. `EditorCommands` (pure): `continueList(text, cursor)` on Enter (`- `, `- [ ] `, `1. ` auto-increment; empty item removes marker), `indent/outdent` on Tab / Shift+Tab, `wrapSelection` for Ctrl+B / Ctrl+I, `toggleTaskAtLine` for Ctrl+Shift+C, `titleFromBody` (first heading or first line, trimmed, max 40).
+3. `TaskToggler.toggleLine(source, lineIndex)` flips `[ ]` ↔ `[x]` on that source line; nothing else changes. Task hit boxes carry the list item's zero-based source line (from commonmark source spans), so code-block look-alikes never count.
+4. `EditorCommands` (pure): `continueList(text, cursor)` on Enter (`- `, `- [ ] `, `1. ` auto-increment; empty item removes marker), `indent/outdent` on Tab / Shift+Tab, `wrapSelection` for Ctrl+D / Ctrl+I (Ctrl+B is Minecraft's narrator hotkey), `toggleTaskAtLine` for Ctrl+Shift+C, `titleFromBody` (first heading or first line, trimmed, max 40).
 5. `LayoutCache`: keyed by content hash + width + scale, small LRU.
 
 `TextMeasure`: `int width(String text, boolean bold)`. In-game impl wraps `Font`; tests use a fixed-width fake (6 px, 7 px bold).
