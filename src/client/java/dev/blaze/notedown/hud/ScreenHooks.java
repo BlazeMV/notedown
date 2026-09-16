@@ -42,7 +42,9 @@ public final class ScreenHooks {
                 switch (h.kind()) {
                     case TASK -> PinRenderer.toggleTask(h.entry(), h.sourceLine());
                     case LINK -> ConfirmDialog.openLink(s, h.url());
-                    default -> { }
+                    default -> {
+                        return true;
+                    }
                 }
                 return false;
             });

@@ -6,6 +6,7 @@ import dev.blaze.notedown.config.NotedownConfig;
 import dev.blaze.notedown.markdown.Layout;
 import dev.blaze.notedown.markdown.Layouter;
 import dev.blaze.notedown.markdown.TaskToggler;
+import dev.blaze.notedown.store.Note;
 import dev.blaze.notedown.ui.FontMeasure;
 import dev.blaze.notedown.ui.LayoutRenderer;
 import dev.blaze.notedown.ui.Messages;
@@ -110,8 +111,14 @@ public final class PinRenderer {
 
     public static void toggleTask(PinnedNotes.Entry e, int line) {
         try {
-            String toggled = TaskToggler.toggleLine(e.note.body(), line);
-            Notedown.store().save(e.note, e.note.title(), toggled, e.scope);
+            Optional<Note> fresh = Notedown.store().read(e.scope, e.note.title());
+            if (fresh.isPresent() && !fresh.get().body().equals(e.note.body())) {
+                PinnedNotes.reload();
+                return;
+            }
+            Note note = fresh.orElse(e.note);
+            String toggled = TaskToggler.toggleLine(note.body(), line);
+            Notedown.store().save(note, note.title(), toggled, e.scope);
             PinnedNotes.reload();
         } catch (IOException ex) {
             Notedown.LOGGER.error("Failed to save note", ex);

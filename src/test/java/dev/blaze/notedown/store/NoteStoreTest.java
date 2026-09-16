@@ -134,6 +134,14 @@ class NoteStoreTest {
     }
 
     @Test
+    void importRejectsOversizedFile() throws Exception {
+        Path big = root.resolve("big.txt");
+        Files.write(big, new byte[(int) NoteStore.MAX_EDITABLE_BYTES + 1]);
+        assertThrows(java.io.IOException.class, () -> store.importFile(world, big));
+        assertTrue(store.list(world).isEmpty());
+    }
+
+    @Test
     void searchMatchesTitleOrBodyCaseInsensitively() throws Exception {
         Note a = store.create(global, "Farm", "carrots and Potatoes");
         Note b = store.create(global, "Nether", "blaze rods");

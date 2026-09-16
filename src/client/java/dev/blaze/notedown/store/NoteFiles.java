@@ -47,9 +47,19 @@ public final class NoteFiles {
         return candidate;
     }
 
-    private static boolean isSame(Path a, Path b) {
-        return b != null && a.getFileName().toString().equalsIgnoreCase(b.getFileName().toString())
-                && a.toAbsolutePath().getParent().equals(b.toAbsolutePath().getParent());
+    private static boolean isSame(Path candidate, Path except) {
+        if (except == null) {
+            return false;
+        }
+        if (Files.exists(candidate)) {
+            try {
+                return Files.isSameFile(candidate, except);
+            } catch (IOException e) {
+                return false;
+            }
+        }
+        return candidate.getFileName().toString().equalsIgnoreCase(except.getFileName().toString())
+                && candidate.toAbsolutePath().getParent().equals(except.toAbsolutePath().getParent());
     }
 
     private static boolean existsIgnoreCase(Path dir, Path candidate) {

@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 public final class ViewScreen extends Screen {
 
@@ -127,6 +128,12 @@ public final class ViewScreen extends Screen {
 
     private void toggleTask(int line) {
         try {
+            Optional<Note> fresh = store.read(note.scope(), note.title());
+            if (fresh.isPresent() && !fresh.get().body().equals(note.body())) {
+                note = fresh.get();
+                view.setBody(note.body());
+                return;
+            }
             note = store.save(note, note.title(), TaskToggler.toggleLine(note.body(), line), note.scope());
             view.setBody(note.body());
             PinnedNotes.reload();

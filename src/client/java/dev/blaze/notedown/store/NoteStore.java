@@ -111,6 +111,9 @@ public final class NoteStore {
     }
 
     public Note importFile(ScopeDir scope, Path source) throws IOException {
+        if (Files.size(source) > MAX_EDITABLE_BYTES) {
+            throw new IOException("File larger than " + MAX_EDITABLE_BYTES + " bytes: " + source);
+        }
         String name = source.getFileName().toString();
         int dot = name.lastIndexOf('.');
         String title = dot > 0 ? name.substring(0, dot) : name;
@@ -137,11 +140,19 @@ public final class NoteStore {
     }
 
     public static String preview(String body) {
-        for (String line : normalize(body).split("\n")) {
-            String cleaned = MARKERS.matcher(line).replaceAll("").strip();
+        String text = body == null ? "" : body;
+        int start = 0;
+        while (start <= text.length()) {
+            int end = text.indexOf('\n', start);
+            int lineEnd = end < 0 ? text.length() : end;
+            String cleaned = MARKERS.matcher(text.substring(start, lineEnd).replace("\r", "")).replaceAll("").strip();
             if (!cleaned.isEmpty()) {
                 return cleaned;
             }
+            if (end < 0) {
+                break;
+            }
+            start = end + 1;
         }
         return "";
     }
