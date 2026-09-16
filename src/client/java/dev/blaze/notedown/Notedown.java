@@ -4,8 +4,10 @@ import dev.blaze.notedown.config.ConfigHolder;
 import dev.blaze.notedown.config.NotedownConfig;
 import dev.blaze.notedown.gui.EditScreen;
 import dev.blaze.notedown.gui.NotebookScreen;
+import dev.blaze.notedown.hud.HudInteractScreen;
 import dev.blaze.notedown.hud.PinnedHudElement;
 import dev.blaze.notedown.hud.PinnedNotes;
+import dev.blaze.notedown.hud.ScreenHooks;
 import dev.blaze.notedown.markdown.LayoutCache;
 import dev.blaze.notedown.scope.CurrentScope;
 import dev.blaze.notedown.store.NoteStore;
@@ -30,6 +32,7 @@ public final class Notedown implements ClientModInitializer {
     private static final LayoutCache LAYOUTS = new LayoutCache();
 
     private static NoteStore store;
+    private static boolean interactWasDown;
 
     public static Identifier id(String path) {
         return Identifier.fromNamespaceAndPath(MOD_ID, path);
@@ -53,6 +56,7 @@ public final class Notedown implements ClientModInitializer {
         ConfigHolder.get();
         NotedownKeys.register();
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, id("pinned"), new PinnedHudElement());
+        ScreenHooks.register();
         ClientPlayConnectionEvents.JOIN.register((listener, sender, client) -> PinnedNotes.reload());
         ClientPlayConnectionEvents.DISCONNECT.register((listener, client) -> PinnedNotes.clear());
         ClientTickEvents.END_CLIENT_TICK.register(Notedown::tick);
@@ -74,6 +78,18 @@ public final class Notedown implements ClientModInitializer {
             cfg.pinnedHidden = !cfg.pinnedHidden;
             ConfigHolder.save();
             Messages.chat(mc, Messages.t(cfg.pinnedHidden ? "message.pinned_hidden" : "message.pinned_shown"));
+        }
+        boolean interactDown = NotedownKeys.INTERACT.isDown();
+        if (interactDown && !interactWasDown && mc.gui.screen() == null && PinnedHudElement.pinsVisible(mc)) {
+            mc.gui.setScreen(new HudInteractScreen());
+        }
+        interactWasDown = interactDown;
+        while (NotedownKeys.QUICK_EDIT.consumeClick()) {
+            if (mc.level != null) {
+                PinnedNotes.first().ifPresentOrElse(
+                        e -> EditScreen.open(null, e.note, e.scope),
+                        () -> Messages.chat(mc, Messages.t("message.no_pinned")));
+            }
         }
     }
 }
