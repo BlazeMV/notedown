@@ -71,6 +71,21 @@ class NoteStoreTest {
     }
 
     @Test
+    void caseOnlyRenameKeepsSinglePin() throws Exception {
+        Note n = store.create(world, "draft", "x");
+        PinIndex idx = store.index(world);
+        idx.put(n.fileName(), new PinIndex.Pin(0.5, 0.5, 100, 50, 1f, 0));
+        idx.save();
+        Note renamed = store.save(n, "Draft", "x", world);
+        assertEquals("Draft.md", renamed.fileName());
+        try (java.util.stream.Stream<Path> files = Files.list(world.dir())) {
+            assertEquals(List.of("Draft.md"),
+                    files.map(p -> p.getFileName().toString()).filter(name -> name.endsWith(NoteFiles.EXT)).sorted().toList());
+        }
+        assertEquals(List.of("Draft.md"), new java.util.ArrayList<>(store.index(world).pins().keySet()));
+    }
+
+    @Test
     void saveWithSameTitleKeepsFile() throws Exception {
         Note n = store.create(world, "Same", "a");
         Note again = store.save(n, "Same", "b", world);
@@ -98,8 +113,10 @@ class NoteStoreTest {
         Note copy = store.duplicate(n);
         assertEquals("Todo 2", copy.title());
         assertEquals("- [ ] a", copy.body());
-        store.index(global).put(copy.fileName(), new PinIndex.Pin(0, 0, 60, 30, 1f, 0));
-        store.index(global).save();
+        PinIndex idx = store.index(global);
+        idx.put(copy.fileName(), new PinIndex.Pin(0, 0, 60, 30, 1f, 0));
+        idx.save();
+        assertTrue(store.index(global).isPinned("Todo 2.md"));
         store.delete(copy);
         assertFalse(Files.exists(copy.file()));
         assertFalse(store.index(global).isPinned("Todo 2.md"));

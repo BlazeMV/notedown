@@ -76,9 +76,16 @@ public final class NoteStore {
         if (!target.equals(note.file())) {
             Optional<PinIndex.Pin> pin = index(note.scope()).get(note.fileName());
             Files.createDirectories(newScope.dir());
-            Files.move(note.file(), target, StandardCopyOption.REPLACE_EXISTING);
+            if (sameScope && target.getFileName().toString().equalsIgnoreCase(note.fileName())) {
+                Path viaTmp = target.resolveSibling(target.getFileName() + ".renaming");
+                Files.move(note.file(), viaTmp, StandardCopyOption.REPLACE_EXISTING);
+                Files.move(viaTmp, target, StandardCopyOption.REPLACE_EXISTING);
+            } else {
+                Files.move(note.file(), target, StandardCopyOption.REPLACE_EXISTING);
+            }
             if (pin.isPresent()) {
                 PinIndex from = index(note.scope());
+                from.remove(note.fileName());
                 if (!sameScope) {
                     from.save();
                 }
