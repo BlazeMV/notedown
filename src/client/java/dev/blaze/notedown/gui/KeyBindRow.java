@@ -6,7 +6,9 @@ import dev.blaze.notedown.ui.Theme;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 
 final class KeyBindRow {
 
@@ -34,14 +36,19 @@ final class KeyBindRow {
     }
 
     void refresh() {
-        Component value = key.getTranslatedKeyMessage();
-        if (conflicted()) {
-            value = value.copy().withStyle(ChatFormatting.RED);
-        }
+        Font font = Minecraft.getInstance().font;
+        String keyText = key.getTranslatedKeyMessage().getString();
         if (screen.isSelecting(key)) {
-            value = Messages.t("option.selecting", value);
+            keyText = Messages.t("option.selecting", keyText).getString();
         }
-        change.setMessage(Component.empty().append(Component.translatable(key.getName())).append(": ").append(value));
+        String suffix = ": " + keyText;
+        int avail = change.getWidth() - 2 * Theme.PAD;
+        String name = Theme.ellipsize(font, Component.translatable(key.getName()).getString(), Math.max(20, avail - font.width(suffix)));
+        MutableComponent label = Component.literal(name + suffix);
+        if (conflicted()) {
+            label = label.withStyle(ChatFormatting.RED);
+        }
+        change.setMessage(label);
         reset.active = !key.isDefault();
     }
 

@@ -217,18 +217,9 @@ public final class NotebookScreen extends Screen {
     }
 
     private void importFiles() {
-        int count = 0;
-        for (Path file : FileDialogs.openNoteFiles()) {
-            try {
-                keep = store.importFile(scopes.getFirst(), file);
-                count++;
-            } catch (IOException e) {
-                Notedown.LOGGER.error("Failed to import {}", file, e);
-                Messages.chat(minecraft, Messages.t("message.import_failed"));
-            }
-        }
-        if (count > 0) {
-            Messages.chat(minecraft, Messages.t("message.imported", count));
+        NoteImport.Result result = NoteImport.run(minecraft, scopes.getFirst());
+        if (result.count() > 0) {
+            keep = result.last();
             reload();
         }
     }

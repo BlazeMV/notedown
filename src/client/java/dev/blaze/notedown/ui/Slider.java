@@ -64,14 +64,16 @@ public final class Slider extends AbstractWidget {
         }
         Font font = Minecraft.getInstance().font;
         int ty = y1 + (getHeight() - 8) / 2;
-        g.text(font, getMessage(), x1 + Theme.PAD, ty, active ? Theme.TEXT : Theme.TEXT_DISABLED);
         int tx = trackX();
+        String label = format.apply(value);
+        int valueX = tx - 6 - font.width(label);
+        int labelMax = Math.max(20, valueX - 4 - (x1 + Theme.PAD));
+        g.text(font, Theme.ellipsize(font, getMessage().getString(), labelMax), x1 + Theme.PAD, ty, active ? Theme.TEXT : Theme.TEXT_DISABLED);
         int tyTrack = y1 + (getHeight() - TRACK_H) / 2;
         g.fill(tx, tyTrack, tx + TRACK_W, tyTrack + TRACK_H, Theme.PANEL_LIGHT);
         int thumbX = tx + Math.round((value - min) / (max - min) * (TRACK_W - THUMB_W));
         g.fill(thumbX, tyTrack, thumbX + THUMB_W, tyTrack + TRACK_H, dragging || isFocused() ? Theme.ACCENT : Theme.TEXT_MUTED);
-        String label = format.apply(value);
-        g.text(font, label, tx - 6 - font.width(label), ty, Theme.TEXT_MUTED);
+        g.text(font, label, valueX, ty, Theme.TEXT_MUTED);
     }
 
     @Override

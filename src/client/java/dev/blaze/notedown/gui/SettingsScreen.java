@@ -21,8 +21,6 @@ import net.minecraft.util.Util;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -32,7 +30,6 @@ public final class SettingsScreen extends Screen {
     private static final int COL_W = 300;
     private static final int GAP = 10;
     private static final int TOP = 12;
-    private static final int BOTTOM_W = 110;
 
     private final Screen parent;
     private final List<KeyBindRow> keyRows = new ArrayList<>();
@@ -102,12 +99,17 @@ public final class SettingsScreen extends Screen {
         }
 
         int by = height - Theme.MARGIN - Theme.BUTTON_HEIGHT;
-        addRenderableWidget(new FlatButton(leftX, by, BOTTOM_W, Theme.BUTTON_HEIGHT, Messages.t("button.open_notebook"),
+        int bw = (totalW - 3 * Theme.MARGIN) / 4;
+        int bx = leftX;
+        addRenderableWidget(new FlatButton(bx, by, bw, Theme.BUTTON_HEIGHT, Messages.t("button.open_notebook"),
                 () -> minecraft.gui.setScreen(new NotebookScreen(this))));
-        addRenderableWidget(new FlatButton(leftX + BOTTOM_W + 5, by, BOTTOM_W, Theme.BUTTON_HEIGHT, Messages.t("button.open_folder"),
+        bx += bw + Theme.MARGIN;
+        addRenderableWidget(new FlatButton(bx, by, bw, Theme.BUTTON_HEIGHT, Messages.t("button.open_folder"),
                 () -> Util.getPlatform().openPath(Notedown.store().root())));
-        addRenderableWidget(new FlatButton(leftX + 2 * (BOTTOM_W + 5), by, BOTTOM_W, Theme.BUTTON_HEIGHT, Messages.t("button.import"), this::importFiles));
-        addRenderableWidget(new FlatButton(leftX + totalW - BOTTOM_W, by, BOTTOM_W, Theme.BUTTON_HEIGHT, Messages.t("button.done"), this::onClose));
+        bx += bw + Theme.MARGIN;
+        addRenderableWidget(new FlatButton(bx, by, bw, Theme.BUTTON_HEIGHT, Messages.t("button.import"), this::importFiles));
+        bx += bw + Theme.MARGIN;
+        addRenderableWidget(new FlatButton(bx, by, bw, Theme.BUTTON_HEIGHT, Messages.t("button.done"), this::onClose));
     }
 
     private static Component checkedLabel(NotedownConfig cfg) {
@@ -116,19 +118,7 @@ public final class SettingsScreen extends Screen {
     }
 
     private void importFiles() {
-        int count = 0;
-        for (Path file : FileDialogs.openNoteFiles()) {
-            try {
-                Notedown.store().importFile(CurrentScope.dirs(Notedown.store(), minecraft).getFirst(), file);
-                count++;
-            } catch (IOException e) {
-                Notedown.LOGGER.error("Failed to import {}", file, e);
-                Messages.chat(minecraft, Messages.t("message.import_failed"));
-            }
-        }
-        if (count > 0) {
-            Messages.chat(minecraft, Messages.t("message.imported", count));
-        }
+        NoteImport.run(minecraft, CurrentScope.dirs(Notedown.store(), minecraft).getFirst());
     }
 
     @Override

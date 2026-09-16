@@ -1,6 +1,7 @@
 package dev.blaze.notedown.ui;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -39,7 +40,9 @@ public final class Toggle extends AbstractButton {
         if (isHoveredOrFocused()) {
             g.fill(x1, y1, x1 + getWidth(), y1 + getHeight(), Theme.HIGHLIGHT);
         }
-        g.text(Minecraft.getInstance().font, getMessage(), x1 + Theme.PAD, y1 + (getHeight() - 8) / 2, active ? Theme.TEXT : Theme.TEXT_DISABLED);
+        Font font = Minecraft.getInstance().font;
+        int labelMax = Math.max(20, getWidth() - 2 * Theme.PAD - BOX - 4);
+        g.text(font, Theme.ellipsize(font, getMessage().getString(), labelMax), x1 + Theme.PAD, y1 + (getHeight() - 8) / 2, active ? Theme.TEXT : Theme.TEXT_DISABLED);
         int bx = x1 + getWidth() - Theme.PAD - BOX;
         int by = y1 + (getHeight() - BOX) / 2;
         Theme.border(g, bx, by, bx + BOX, by + BOX, on ? Theme.ACCENT : Theme.TEXT_MUTED);
