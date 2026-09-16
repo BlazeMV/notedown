@@ -72,6 +72,8 @@ public final class NotebookScreen extends Screen {
         addRenderableWidget(new FlatButton(x, y, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.new"), this::newNote));
         y += ROW;
         addRenderableWidget(new FlatButton(x, y, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.import"), this::importFiles));
+        y += ROW;
+        addRenderableWidget(new FlatButton(x, y, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.settings"), () -> minecraft.gui.setScreen(new SettingsScreen(this))));
         int doneY = height - Theme.MARGIN - Theme.BUTTON_HEIGHT;
         addRenderableWidget(new FlatButton(x, doneY, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.done"), this::onClose));
         int sy = doneY - 5 * ROW;
