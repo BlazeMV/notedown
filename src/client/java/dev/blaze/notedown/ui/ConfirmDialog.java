@@ -1,9 +1,11 @@
 package dev.blaze.notedown.ui;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.util.Util;
 
 import java.util.List;
 
@@ -24,6 +26,12 @@ public final class ConfirmDialog extends Screen {
         this.body = body;
         this.yesLabel = yesLabel;
         this.onYes = onYes;
+    }
+
+    public static void openLink(Screen parent, String url) {
+        Minecraft mc = Minecraft.getInstance();
+        mc.gui.setScreen(new ConfirmDialog(parent, Messages.t("dialog.link_title"), Messages.t("dialog.link_body", url),
+                Messages.t("button.open"), () -> Util.getPlatform().openUri(url)));
     }
 
     @Override
