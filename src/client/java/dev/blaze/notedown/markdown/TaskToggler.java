@@ -1,5 +1,6 @@
 package dev.blaze.notedown.markdown;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,12 +19,20 @@ public final class TaskToggler {
         if (lineIndex >= lines.length) {
             return body;
         }
-        Matcher m = TASK.matcher(lines[lineIndex]);
-        if (!m.matches()) {
+        Optional<String> flipped = flip(lines[lineIndex]);
+        if (flipped.isEmpty()) {
             return body;
         }
-        String box = m.group(2).equals(" ") ? "x" : " ";
-        lines[lineIndex] = m.group(1) + box + m.group(3);
+        lines[lineIndex] = flipped.get();
         return String.join("\n", lines);
+    }
+
+    /** The line with its checkbox flipped, or empty when the line is not a task item. */
+    static Optional<String> flip(String line) {
+        Matcher m = TASK.matcher(line);
+        if (!m.matches()) {
+            return Optional.empty();
+        }
+        return Optional.of(m.group(1) + (m.group(2).equals(" ") ? "x" : " ") + m.group(3));
     }
 }

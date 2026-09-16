@@ -29,6 +29,17 @@ class EditorCommandsTest {
     }
 
     @Test
+    void enterAfterMarkerPushesItemDown() {
+        assertEquals(new EditorCommands.Edit("- \n- hello", 5), EditorCommands.enter("- hello", 2));
+        assertEquals(new EditorCommands.Edit("- [ ] \n- [ ] buy milk", 13), EditorCommands.enter("- [ ] buy milk", 6));
+    }
+
+    @Test
+    void enterOnHugeNumberIsPlainNewline() {
+        assertEquals(new EditorCommands.Edit("9876543210. x\n", 14), EditorCommands.enter("9876543210. x", 13));
+    }
+
+    @Test
     void enterMidLineSplitsPlainText() {
         EditorCommands.Edit e = EditorCommands.enter("hello world", 5);
         assertEquals("hello\n world", e.text());

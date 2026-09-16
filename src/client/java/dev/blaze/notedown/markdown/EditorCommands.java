@@ -9,8 +9,7 @@ public final class EditorCommands {
 
     public static final int MAX_TITLE = 40;
 
-    private static final Pattern LIST_LINE = Pattern.compile("^(\\s*)([-*+]|\\d+[.)])(\\s+)(\\[[ xX]\\]\\s+)?(.*)$");
-    private static final Pattern TASK_BOX = Pattern.compile("^(\\s*(?:[-*+]|\\d+[.)])\\s+\\[)([ xX])(\\].*)$");
+    private static final Pattern LIST_LINE = Pattern.compile("^(\\s*)([-*+]|\\d{1,9}[.)])(\\s+)(\\[[ xX]\\]\\s+)?(.*)$");
     private static final Pattern HEADING = Pattern.compile("^#{1,6}\\s+(.*)$");
     private static final Pattern LEADING_MARKERS = Pattern.compile("^(?:[-*+]|\\d+[.)])\\s+(?:\\[[ xX]\\]\\s*)?");
     private static final Pattern INLINE_MARKERS = Pattern.compile("[*_`~>]");
@@ -23,7 +22,7 @@ public final class EditorCommands {
         if (!m.matches()) {
             return insert(text, cursor, "\n");
         }
-        if (m.group(5).isEmpty()) {
+        if (m.group(5).isEmpty() && cursor >= lineEnd(text, cursor)) {
             return new Edit(text.substring(0, lineStart) + text.substring(cursor), lineStart);
         }
         String marker = m.group(2);
@@ -68,14 +67,10 @@ public final class EditorCommands {
         int ls = lineStart(text, cursor);
         int le = lineEnd(text, cursor);
         String line = text.substring(ls, le);
-        Matcher box = TASK_BOX.matcher(line);
-        String replaced;
-        if (box.matches()) {
-            replaced = box.group(1) + (box.group(2).equals(" ") ? "x" : " ") + box.group(3);
-        } else {
+        String replaced = TaskToggler.flip(line).orElseGet(() -> {
             Matcher li = LIST_LINE.matcher(line);
-            replaced = li.matches() ? li.group(1) + li.group(2) + li.group(3) + "[ ] " + li.group(5) : "- [ ] " + line;
-        }
+            return li.matches() ? li.group(1) + li.group(2) + li.group(3) + "[ ] " + li.group(5) : "- [ ] " + line;
+        });
         String result = text.substring(0, ls) + replaced + text.substring(le);
         return new Edit(result, Math.min(result.length(), cursor + (replaced.length() - line.length())));
     }
