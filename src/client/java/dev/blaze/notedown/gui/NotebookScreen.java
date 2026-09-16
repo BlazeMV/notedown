@@ -34,6 +34,8 @@ public final class NotebookScreen extends Screen {
     private static final int SIDE_W = 110;
     private static final int TOP = 12;
     private static final int NOTE_ROW = 36;
+    private static final int ROW = 22;
+    private static final int STATUS_H = 14;
 
     private final Screen parent;
     private final NoteStore store = Notedown.store();
@@ -68,24 +70,25 @@ public final class NotebookScreen extends Screen {
         y += Theme.BUTTON_HEIGHT + 8;
         int listY = y;
         addRenderableWidget(new FlatButton(x, y, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.new"), this::newNote));
-        y += 25;
+        y += ROW;
         addRenderableWidget(new FlatButton(x, y, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.import"), this::importFiles));
-        y += 25;
-        y += 10;
-        selectionButtons.add(addRenderableWidget(new FlatButton(x, y, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.view"), () -> selected().ifPresent(this::view))));
-        y += 25;
-        selectionButtons.add(addRenderableWidget(new FlatButton(x, y, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.edit"), () -> selected().ifPresent(this::edit))));
-        y += 25;
-        pinButton = addRenderableWidget(new FlatButton(x, y, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.pin"), () -> selected().ifPresent(this::togglePin)));
+        int doneY = height - Theme.MARGIN - Theme.BUTTON_HEIGHT;
+        addRenderableWidget(new FlatButton(x, doneY, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.done"), this::onClose));
+        int sy = doneY - 5 * ROW;
+        selectionButtons.add(addRenderableWidget(new FlatButton(x, sy, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.view"), () -> selected().ifPresent(this::view))));
+        sy += ROW;
+        selectionButtons.add(addRenderableWidget(new FlatButton(x, sy, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.edit"), () -> selected().ifPresent(this::edit))));
+        sy += ROW;
+        pinButton = addRenderableWidget(new FlatButton(x, sy, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.pin"), () -> selected().ifPresent(this::togglePin)));
         selectionButtons.add(pinButton);
-        y += 25;
-        selectionButtons.add(addRenderableWidget(new FlatButton(x, y, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.duplicate"), () -> selected().ifPresent(this::duplicate))));
-        y += 25;
-        selectionButtons.add(addRenderableWidget(new FlatButton(x, y, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.delete"), () -> selected().ifPresent(this::delete))));
-        addRenderableWidget(new FlatButton(x, height - Theme.MARGIN - Theme.BUTTON_HEIGHT, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.done"), this::onClose));
+        sy += ROW;
+        selectionButtons.add(addRenderableWidget(new FlatButton(x, sy, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.duplicate"), () -> selected().ifPresent(this::duplicate))));
+        sy += ROW;
+        selectionButtons.add(addRenderableWidget(new FlatButton(x, sy, SIDE_W, Theme.BUTTON_HEIGHT, Messages.t("button.delete"), () -> selected().ifPresent(this::delete))));
 
         int lx = Theme.MARGIN * 2 + SIDE_W;
-        list = new FlatList<>(lx, listY, width - lx - Theme.MARGIN, height - listY - Theme.MARGIN, NOTE_ROW,
+        int listH = height - listY - Theme.MARGIN - (scopes.size() > 1 ? STATUS_H : 0);
+        list = new FlatList<>(lx, listY, width - lx - Theme.MARGIN, listH, NOTE_ROW,
                 this::renderRow, n -> updateButtons(), this::view);
         addRenderableWidget(list);
         reload();
@@ -159,7 +162,7 @@ public final class NotebookScreen extends Screen {
         if (scopes.size() > 1) {
             ScopeDir current = scopes.getFirst();
             Component label = Messages.t("screen.notebook.scope", Component.translatable(current.kind().langKey()), current.label());
-            g.text(font, Theme.ellipsize(font, label.getString(), SIDE_W), Theme.MARGIN, height - Theme.MARGIN - Theme.BUTTON_HEIGHT - 12, Theme.TEXT_DISABLED);
+            g.text(font, Theme.ellipsize(font, label.getString(), list.getWidth()), list.getX(), height - Theme.MARGIN - 10, Theme.TEXT_DISABLED);
         }
     }
 
