@@ -1,0 +1,38 @@
+plugins { id 'net.fabricmc.fabric-loom' version '1.17.+' }
+version = project.mod_version
+group = project.maven_group
+base { archivesName = project.archives_base_name }
+repositories { maven { url = 'https://maven.terraformersmc.com/' } }
+loom {
+    splitEnvironmentSourceSets()
+    mods { "notedown" { sourceSet sourceSets.main; sourceSet sourceSets.client } }
+    accessWidenerPath = file('src/client/resources/notedown.accesswidener')
+}
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    compileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
+    ['commonmark', 'commonmark-ext-task-list-items', 'commonmark-ext-gfm-strikethrough'].each { name ->
+        implementation "org.commonmark:${name}:${project.commonmark_version}"
+        include "org.commonmark:${name}:${project.commonmark_version}"
+    }
+    testImplementation platform('org.junit:junit-bom:5.13.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+sourceSets.test {
+    compileClasspath += sourceSets.client.output + sourceSets.client.compileClasspath
+    runtimeClasspath += sourceSets.client.output + sourceSets.client.runtimeClasspath
+}
+def modVersion = project.version
+tasks.withType(ProcessResources).configureEach {
+    // fabric.mod.json lives in the client source set; processResources alone misses it
+    inputs.property 'version', modVersion
+    filteringCharset = 'UTF-8'
+    filesMatching('fabric.mod.json') { expand 'version': modVersion }
+}
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8'; options.release = 25 }
+java { toolchain { languageVersion = JavaLanguageVersion.of(25) }; withSourcesJar() }
+tasks.test { useJUnitPlatform() }
+jar { from('LICENSE') { rename { "${it}_${base.archivesName.get()}" } } }
