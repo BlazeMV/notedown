@@ -3,6 +3,7 @@ package dev.blaze.notedown;
 import dev.blaze.notedown.config.ConfigHolder;
 import dev.blaze.notedown.config.NotedownConfig;
 import dev.blaze.notedown.gui.EditScreen;
+import dev.blaze.notedown.gui.NotebookScreen;
 import dev.blaze.notedown.hud.PinnedHudElement;
 import dev.blaze.notedown.hud.PinnedNotes;
 import dev.blaze.notedown.markdown.LayoutCache;
@@ -58,6 +59,11 @@ public final class Notedown implements ClientModInitializer {
     }
 
     private static void tick(Minecraft mc) {
+        while (NotedownKeys.OPEN.consumeClick()) {
+            if (mc.level != null) {
+                mc.gui.setScreen(new NotebookScreen(null));
+            }
+        }
         while (NotedownKeys.NEW_NOTE.consumeClick()) {
             if (mc.level != null) {
                 EditScreen.open(null, null, CurrentScope.dirs(store(), mc).getFirst());
