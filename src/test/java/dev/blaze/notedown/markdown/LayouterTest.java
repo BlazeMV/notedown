@@ -186,6 +186,15 @@ class LayouterTest {
     }
 
     @Test
+    void orderedListsAlignOnTheWidestNumber() {
+        Layout l = layout("9. nine\n10. ten", 300);
+        assertEquals(22, l.lines().get(0).x());
+        assertEquals(22, l.lines().get(1).x());
+        assertEquals("9.", l.lines().get(0).deco().label());
+        assertEquals("10.", l.lines().get(1).deco().label());
+    }
+
+    @Test
     void taskItemsProduceDecoAndHitBoxes() {
         Layout l = layout("- [ ] a\n- [x] b", 300);
         assertEquals(Layout.DecoKind.TASK, l.lines().get(0).deco().kind());

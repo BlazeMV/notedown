@@ -145,13 +145,18 @@ public final class Layouter {
     private void list(ListBlock list, int indent, int depth, Integer start) {
         int number = start == null ? 0 : start;
         boolean tight = list.isTight();
+        int itemCount = 0;
+        for (Node item = list.getFirstChild(); item != null; item = item.getNext()) {
+            itemCount++;
+        }
+        int markerWidth = start == null ? MARKER_WIDTH
+                : Math.max(MARKER_WIDTH, measure.width((start + Math.max(0, itemCount - 1)) + ".", false) + 4);
         for (Node item = list.getFirstChild(); item != null; item = item.getNext()) {
             if (!(item instanceof ListItem li)) {
                 continue;
             }
             TaskListItemMarker marker = taskMarker(li);
             String label = start == null ? BULLETS[depth % BULLETS.length] : (number++) + ".";
-            int markerWidth = marker == null && start != null ? Math.max(MARKER_WIDTH, measure.width(label, false) + 4) : MARKER_WIDTH;
             int textIndent = indent + markerWidth;
             TextStyle base = marker == null ? TextStyle.NORMAL : checkedStyle(marker.isChecked());
             int before = lines.size();
