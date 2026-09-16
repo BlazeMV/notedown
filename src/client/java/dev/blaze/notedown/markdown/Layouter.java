@@ -11,6 +11,7 @@ import org.commonmark.node.HtmlBlock;
 import org.commonmark.node.HtmlInline;
 import org.commonmark.node.IndentedCodeBlock;
 import org.commonmark.node.Link;
+import org.commonmark.node.LinkReferenceDefinition;
 import org.commonmark.node.Node;
 import org.commonmark.node.Paragraph;
 import org.commonmark.node.SoftLineBreak;
@@ -60,6 +61,7 @@ public final class Layouter {
     }
 
     private void block(Node n, int indent, int depth, boolean tight) {
+        int before = lines.size();
         switch (n) {
             case Heading h -> {
                 float scale = HEADING_SCALE[Math.min(HEADING_SCALE.length, Math.max(1, h.getLevel())) - 1];
@@ -80,12 +82,19 @@ public final class Layouter {
                 gap();
             }
             case HtmlBlock h -> {
-                paragraph(List.of(new Layout.Run(h.getLiteral().strip(), TextStyle.NORMAL, 0)), indent, 1f);
-                gap();
+                for (String line : h.getLiteral().strip().split("\n")) {
+                    paragraph(List.of(new Layout.Run(line, TextStyle.NORMAL, 0)), indent, 1f);
+                }
+                if (lines.size() > before) {
+                    gap();
+                }
             }
+            case LinkReferenceDefinition d -> { }
             default -> {
                 paragraph(inlines(n, TextStyle.NORMAL), indent, 1f);
-                gap();
+                if (lines.size() > before) {
+                    gap();
+                }
             }
         }
     }
@@ -122,7 +131,7 @@ public final class Layouter {
                 case StrongEmphasis e -> collectInlines(e, style.withBold(true), out);
                 case Strikethrough s -> collectInlines(s, style.withStrike(true), out);
                 case Code c -> out.add(new Layout.Run(c.getLiteral(), style.withCode(true), 0));
-                case Link l -> collectInlines(l, style.withLink(l.getDestination()), out);
+                case Link l -> collectInlines(l, style.withLink(l.getDestination()).withUnderline(true), out);
                 case HtmlInline h -> out.add(new Layout.Run(h.getLiteral(), style, 0));
                 case TaskListItemMarker m -> { }
                 default -> collectInlines(n, style, out);

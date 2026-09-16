@@ -120,6 +120,23 @@ class LayouterTest {
         assertEquals(9, hit.h());
         assertTrue(hit.contains(5, 4));
         assertFalse(hit.contains(13, 4));
+        assertTrue(l.lines().getFirst().runs().getFirst().style().underline());
+    }
+
+    @Test
+    void htmlBlockKeepsItsLines() {
+        Layout l = layout("<div>\nraw\n</div>", 300);
+        assertEquals(List.of("<div>", "raw", "</div>"), texts(l));
+        assertEquals(List.of(0, 11, 22), l.lines().stream().map(Layout.Line::y).toList());
+    }
+
+    @Test
+    void linkReferenceDefinitionsTakeNoSpace() {
+        Layout l = layout("[x]: http://y\n\ntext", 300);
+        assertEquals(List.of("text"), texts(l));
+        assertEquals(0, l.lines().getFirst().y());
+        assertEquals(11, l.height());
+        assertEquals(11, layout("See [one][a]\n\n[a]: http://a", 300).height());
     }
 
     @Test
