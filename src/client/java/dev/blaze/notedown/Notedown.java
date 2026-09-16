@@ -79,7 +79,7 @@ public final class Notedown implements ClientModInitializer {
             ConfigHolder.save();
             Messages.chat(mc, Messages.t(cfg.pinnedHidden ? "message.pinned_hidden" : "message.pinned_shown"));
         }
-        boolean interactDown = NotedownKeys.INTERACT.isDown();
+        boolean interactDown = NotedownKeys.isPhysicallyDown(mc, NotedownKeys.INTERACT);
         if (interactDown && !interactWasDown && mc.gui.screen() == null && PinnedHudElement.pinsVisible(mc)) {
             mc.gui.setScreen(new HudInteractScreen());
         }
