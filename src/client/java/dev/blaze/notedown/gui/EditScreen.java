@@ -2,6 +2,7 @@ package dev.blaze.notedown.gui;
 
 import dev.blaze.notedown.Notedown;
 import dev.blaze.notedown.config.ConfigHolder;
+import dev.blaze.notedown.hud.PinnedNotes;
 import dev.blaze.notedown.markdown.EditorCommands;
 import dev.blaze.notedown.markdown.TaskToggler;
 import dev.blaze.notedown.markdown.UndoStack;
@@ -213,6 +214,7 @@ public final class EditScreen extends Screen {
         savedBody = note.body();
         body = savedBody;
         savedScope = scope;
+        PinnedNotes.reload();
         return true;
     }
 

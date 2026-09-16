@@ -1,12 +1,19 @@
 package dev.blaze.notedown;
 
 import dev.blaze.notedown.config.ConfigHolder;
+import dev.blaze.notedown.config.NotedownConfig;
 import dev.blaze.notedown.gui.EditScreen;
+import dev.blaze.notedown.hud.PinnedHudElement;
+import dev.blaze.notedown.hud.PinnedNotes;
 import dev.blaze.notedown.markdown.LayoutCache;
 import dev.blaze.notedown.scope.CurrentScope;
 import dev.blaze.notedown.store.NoteStore;
+import dev.blaze.notedown.ui.Messages;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
@@ -44,6 +51,9 @@ public final class Notedown implements ClientModInitializer {
         LOGGER.info("Notedown loaded");
         ConfigHolder.get();
         NotedownKeys.register();
+        HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, id("pinned"), new PinnedHudElement());
+        ClientPlayConnectionEvents.JOIN.register((listener, sender, client) -> PinnedNotes.reload());
+        ClientPlayConnectionEvents.DISCONNECT.register((listener, client) -> PinnedNotes.clear());
         ClientTickEvents.END_CLIENT_TICK.register(Notedown::tick);
     }
 
@@ -52,6 +62,12 @@ public final class Notedown implements ClientModInitializer {
             if (mc.level != null) {
                 EditScreen.open(null, null, CurrentScope.dirs(store(), mc).getFirst());
             }
+        }
+        while (NotedownKeys.TOGGLE_PINNED.consumeClick()) {
+            NotedownConfig cfg = ConfigHolder.get();
+            cfg.pinnedHidden = !cfg.pinnedHidden;
+            ConfigHolder.save();
+            Messages.chat(mc, Messages.t(cfg.pinnedHidden ? "message.pinned_hidden" : "message.pinned_shown"));
         }
     }
 }
