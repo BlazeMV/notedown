@@ -2,6 +2,8 @@ package dev.blaze.notedown.markdown;
 
 import org.commonmark.ext.gfm.strikethrough.Strikethrough;
 import org.commonmark.ext.task.list.items.TaskListItemMarker;
+import org.commonmark.node.BlockQuote;
+import org.commonmark.node.BulletList;
 import org.commonmark.node.Code;
 import org.commonmark.node.Emphasis;
 import org.commonmark.node.FencedCodeBlock;
@@ -12,7 +14,10 @@ import org.commonmark.node.HtmlInline;
 import org.commonmark.node.IndentedCodeBlock;
 import org.commonmark.node.Link;
 import org.commonmark.node.LinkReferenceDefinition;
+import org.commonmark.node.ListBlock;
+import org.commonmark.node.ListItem;
 import org.commonmark.node.Node;
+import org.commonmark.node.OrderedList;
 import org.commonmark.node.Paragraph;
 import org.commonmark.node.SoftLineBreak;
 import org.commonmark.node.StrongEmphasis;
@@ -33,6 +38,7 @@ public final class Layouter {
     public static final int MIN_WIDTH = 20;
 
     private static final float[] HEADING_SCALE = {1.5f, 1.25f, 1.1f, 1f, 1f, 1f};
+    private static final String[] BULLETS = {"•", "◦", "▪"};
 
     private final TextMeasure measure;
     private final int width;
@@ -90,6 +96,19 @@ public final class Layouter {
                 }
             }
             case LinkReferenceDefinition d -> { }
+            case BlockQuote q -> quote(q, indent, depth);
+            case BulletList l -> {
+                list(l, indent, depth, null);
+                if (!tight) {
+                    gap();
+                }
+            }
+            case OrderedList l -> {
+                list(l, indent, depth, l.getMarkerStartNumber() == null ? 1 : l.getMarkerStartNumber());
+                if (!tight) {
+                    gap();
+                }
+            }
             default -> {
                 paragraph(inlines(n, TextStyle.NORMAL), indent, 1f);
                 if (lines.size() > before) {
@@ -113,6 +132,74 @@ public final class Layouter {
             y += measure.lineHeight() + LINE_GAP;
         }
         gap();
+    }
+
+    private void quote(BlockQuote q, int indent, int depth) {
+        int start = lines.size();
+        blocks(q, indent + QUOTE_INDENT, depth, false);
+        for (int i = start; i < lines.size(); i++) {
+            lines.set(i, lines.get(i).withQuoted(true));
+        }
+    }
+
+    private void list(ListBlock list, int indent, int depth, Integer start) {
+        int number = start == null ? 0 : start;
+        boolean tight = list.isTight();
+        for (Node item = list.getFirstChild(); item != null; item = item.getNext()) {
+            if (!(item instanceof ListItem li)) {
+                continue;
+            }
+            TaskListItemMarker marker = taskMarker(li);
+            String label = start == null ? BULLETS[depth % BULLETS.length] : (number++) + ".";
+            int markerWidth = marker == null && start != null ? Math.max(MARKER_WIDTH, measure.width(label, false) + 4) : MARKER_WIDTH;
+            int textIndent = indent + markerWidth;
+            TextStyle base = marker == null ? TextStyle.NORMAL : checkedStyle(marker.isChecked());
+            int before = lines.size();
+            for (Node child = li.getFirstChild(); child != null; child = child.getNext()) {
+                if (child instanceof TaskListItemMarker) {
+                    continue;
+                }
+                if (child instanceof Paragraph p) {
+                    paragraph(inlines(p, base), textIndent, 1f);
+                    if (!tight) {
+                        gap();
+                    }
+                } else {
+                    block(child, textIndent, depth + 1, tight);
+                }
+            }
+            if (lines.size() == before) {
+                lines.add(new Layout.Line(textIndent, y, 1f, List.of(), Layout.Deco.NONE, false, 0));
+                y += measure.lineHeight() + LINE_GAP;
+                if (!tight) {
+                    gap();
+                }
+            }
+            Layout.Line first = lines.get(before);
+            int sourceLine = li.getSourceSpans().isEmpty() ? -1 : li.getSourceSpans().getFirst().getLineIndex();
+            Layout.Deco deco = marker != null ? Layout.Deco.task(marker.isChecked(), sourceLine)
+                    : start == null ? Layout.Deco.bullet(label) : Layout.Deco.number(label);
+            lines.set(before, first.withDeco(deco));
+            if (marker != null) {
+                int boxY = first.y() + (measure.lineHeight() - TASK_BOX) / 2;
+                hits.add(new Layout.HitBox(Layout.HitKind.TASK, first.x() - MARKER_WIDTH, boxY, TASK_BOX, TASK_BOX, sourceLine, null));
+            }
+        }
+    }
+
+    private static TaskListItemMarker taskMarker(ListItem li) {
+        return li.getFirstChild() instanceof TaskListItemMarker m ? m : null;
+    }
+
+    private TextStyle checkedStyle(boolean checked) {
+        if (!checked) {
+            return TextStyle.NORMAL;
+        }
+        return switch (checkedStyle) {
+            case STRIKE_MUTED -> TextStyle.NORMAL.withStrike(true).withMuted(true);
+            case MUTED -> TextStyle.NORMAL.withMuted(true);
+            case NONE -> TextStyle.NORMAL;
+        };
     }
 
     private List<Layout.Run> inlines(Node container, TextStyle base) {

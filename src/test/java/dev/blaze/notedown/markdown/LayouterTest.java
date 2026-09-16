@@ -155,4 +155,99 @@ class LayouterTest {
     void tinyWidthIsClampedNotCrashing() {
         assertFalse(layout("word", 1).lines().isEmpty());
     }
+
+    @Test
+    void bulletListMarkersAndIndent() {
+        Layout l = layout("- a\n- b", 300);
+        assertEquals(List.of("a", "b"), texts(l));
+        for (Layout.Line line : l.lines()) {
+            assertEquals(Layout.DecoKind.BULLET, line.deco().kind());
+            assertEquals("•", line.deco().label());
+            assertEquals(Layouter.MARKER_WIDTH, line.x());
+        }
+        assertEquals(11, l.lines().get(1).y());
+    }
+
+    @Test
+    void nestedListsIndentAndCycleBullets() {
+        Layout l = layout("- a\n  - b\n    - c", 300);
+        assertEquals(Layouter.MARKER_WIDTH * 2, l.lines().get(1).x());
+        assertEquals("◦", l.lines().get(1).deco().label());
+        assertEquals("▪", l.lines().get(2).deco().label());
+    }
+
+    @Test
+    void orderedListsNumberFromStart() {
+        Layout l = layout("3. a\n4. b", 300);
+        assertEquals("3.", l.lines().get(0).deco().label());
+        assertEquals("4.", l.lines().get(1).deco().label());
+        assertEquals(Layout.DecoKind.NUMBER, l.lines().get(0).deco().kind());
+        assertEquals(16, l.lines().get(0).x());
+    }
+
+    @Test
+    void taskItemsProduceDecoAndHitBoxes() {
+        Layout l = layout("- [ ] a\n- [x] b", 300);
+        assertEquals(Layout.DecoKind.TASK, l.lines().get(0).deco().kind());
+        assertFalse(l.lines().get(0).deco().checked());
+        assertTrue(l.lines().get(1).deco().checked());
+        assertEquals(0, l.lines().get(0).deco().sourceLine());
+        assertEquals(1, l.lines().get(1).deco().sourceLine());
+        assertEquals(2, l.hitBoxes().size());
+        Layout.HitBox second = l.hitBoxes().get(1);
+        assertEquals(Layout.HitKind.TASK, second.kind());
+        assertEquals(0, second.x());
+        assertEquals(11, second.y());
+        assertEquals(Layouter.TASK_BOX, second.w());
+        assertEquals(1, second.sourceLine());
+        assertTrue(l.lines().get(1).runs().getFirst().style().strike());
+        assertTrue(l.lines().get(1).runs().getFirst().style().muted());
+        assertFalse(l.lines().get(0).runs().getFirst().style().strike());
+    }
+
+    @Test
+    void checkedStyleNoneLeavesTextPlain() {
+        Layout l = Layouter.layout(MarkdownParser.parse("- [x] b"), 300, CheckedTaskStyle.NONE, FAKE);
+        assertFalse(l.lines().getFirst().runs().getFirst().style().strike());
+        assertFalse(l.lines().getFirst().runs().getFirst().style().muted());
+    }
+
+    @Test
+    void taskSourceLineSurvivesPrecedingContent() {
+        Layout l = layout("# Head\n\ntext\n\n- [ ] later", 300);
+        assertEquals(4, l.hitBoxes().getFirst().sourceLine());
+    }
+
+    @Test
+    void tasksInsideCodeBlocksAreNotTasks() {
+        assertTrue(layout("```\n- [ ] x\n```", 300).hitBoxes().isEmpty());
+    }
+
+    @Test
+    void blockquotesAreMarkedAndIndented() {
+        Layout l = layout("> q", 300);
+        assertTrue(l.lines().getFirst().quoted());
+        assertEquals(Layouter.QUOTE_INDENT, l.lines().getFirst().x());
+    }
+
+    @Test
+    void looseListsGetParagraphGaps() {
+        assertEquals(11, layout("- a\n- b", 300).lines().get(1).y());
+        assertEquals(15, layout("- a\n\n- b", 300).lines().get(1).y());
+    }
+
+    @Test
+    void emptyListItemStillGetsMarker() {
+        Layout l = layout("-", 300);
+        assertEquals(1, l.lines().size());
+        assertEquals(Layout.DecoKind.BULLET, l.lines().getFirst().deco().kind());
+        assertTrue(l.lines().getFirst().runs().isEmpty());
+    }
+
+    @Test
+    void continuationParagraphInItemHasNoMarker() {
+        Layout l = layout("- a\n\n  second", 300);
+        assertEquals(Layout.DecoKind.NONE, l.lines().get(1).deco().kind());
+        assertEquals(Layouter.MARKER_WIDTH, l.lines().get(1).x());
+    }
 }
