@@ -15,6 +15,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -37,6 +38,14 @@ public final class PinIndex {
 
         public Pin withScale(float s) {
             return new Pin(x, y, w, h, s, scroll);
+        }
+
+        public Pin normalized() {
+            float s = Float.isFinite(scale) && scale > 0f ? scale : 1f;
+            s = Math.max(0.5f, Math.min(2f, s));
+            double nx = Double.isFinite(x) ? x : 0;
+            double ny = Double.isFinite(y) ? y : 0;
+            return new Pin(nx, ny, Math.max(0, w), Math.max(0, h), s, Math.max(0, scroll));
         }
     }
 
@@ -71,6 +80,8 @@ public final class PinIndex {
             }
         }
         data.pins.keySet().removeIf(name -> !Files.isRegularFile(dir.resolve(name)));
+        data.pins.replaceAll((name, pin) -> pin == null ? null : pin.normalized());
+        data.pins.values().removeIf(Objects::isNull);
         return new PinIndex(file, data);
     }
 

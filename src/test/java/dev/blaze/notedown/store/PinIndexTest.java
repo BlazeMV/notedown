@@ -67,4 +67,16 @@ class PinIndexTest {
         idx.remove("new.md");
         assertTrue(idx.pins().isEmpty());
     }
+
+    @Test
+    void normalisesBadPinValuesOnLoad() throws Exception {
+        Files.writeString(dir.resolve("a.md"), "");
+        Files.writeString(dir.resolve("b.md"), "");
+        Files.writeString(dir.resolve(PinIndex.FILE),
+                "{\"version\":1,\"pins\":{\"a.md\":{\"x\":NaN,\"y\":0.2,\"w\":-5,\"h\":50,\"scale\":0,\"scroll\":-3},"
+                        + "\"b.md\":{\"x\":0.1,\"y\":0.1,\"w\":100,\"h\":50,\"scale\":9,\"scroll\":0}}}");
+        PinIndex idx = PinIndex.load(dir, msg -> fail(msg));
+        assertEquals(new PinIndex.Pin(0, 0.2, 0, 50, 1f, 0), idx.get("a.md").orElseThrow());
+        assertEquals(2f, idx.get("b.md").orElseThrow().scale());
+    }
 }
