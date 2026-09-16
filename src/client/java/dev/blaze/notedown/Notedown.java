@@ -1,5 +1,6 @@
 package dev.blaze.notedown;
 
+import dev.blaze.notedown.markdown.LayoutCache;
 import dev.blaze.notedown.store.NoteStore;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -13,6 +14,8 @@ public final class Notedown implements ClientModInitializer {
     public static final String MOD_ID = "notedown";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
+    private static final LayoutCache LAYOUTS = new LayoutCache();
+
     private static NoteStore store;
 
     public static Identifier id(String path) {
@@ -25,6 +28,10 @@ public final class Notedown implements ClientModInitializer {
             store = new NoteStore(root, msg -> LOGGER.warn(msg));
         }
         return store;
+    }
+
+    public static LayoutCache layouts() {
+        return LAYOUTS;
     }
 
     @Override
