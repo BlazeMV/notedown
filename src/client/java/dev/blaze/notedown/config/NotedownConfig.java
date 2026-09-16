@@ -60,6 +60,12 @@ public final class NotedownConfig {
     }
 
     public NotedownConfig clamp() {
+        if (Float.isNaN(pinnedBackgroundOpacity)) {
+            pinnedBackgroundOpacity = 0.5f;
+        }
+        if (Float.isNaN(pinnedTextScale)) {
+            pinnedTextScale = 1.0f;
+        }
         pinnedBackgroundOpacity = Math.max(0f, Math.min(1f, pinnedBackgroundOpacity));
         pinnedTextScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, pinnedTextScale));
         if (checkedTaskStyle == null) {

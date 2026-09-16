@@ -24,11 +24,12 @@ public final class ConfigHolder {
                 Notedown.LOGGER.warn(msg);
             });
             if (!existed || hadProblem[0]) {
-                if (hadProblem[0]) {
-                    quarantine(file);
+                if (hadProblem[0] && !quarantine(file)) {
+                    Notedown.LOGGER.warn("Using defaults in memory only; leaving {} in place", file);
+                } else {
+                    Notedown.LOGGER.info("Writing default config to {}", file);
+                    persist(file);
                 }
-                Notedown.LOGGER.info("Writing default config to {}", file);
-                persist(file);
             }
         }
         return instance;
@@ -51,11 +52,13 @@ public final class ConfigHolder {
         }
     }
 
-    private static void quarantine(Path file) {
+    private static boolean quarantine(Path file) {
         try {
             Files.move(file, file.resolveSibling(file.getFileName() + ".bad"), StandardCopyOption.REPLACE_EXISTING);
+            return true;
         } catch (IOException e) {
             Notedown.LOGGER.error("Failed to preserve unreadable config", e);
+            return false;
         }
     }
 }

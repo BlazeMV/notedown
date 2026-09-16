@@ -56,6 +56,15 @@ class NotedownConfigTest {
     }
 
     @Test
+    void resetsNonFiniteValues() throws Exception {
+        Path file = dir.resolve("notedown.json");
+        Files.writeString(file, "{\"pinnedTextScale\": NaN, \"pinnedBackgroundOpacity\": Infinity}");
+        NotedownConfig c = NotedownConfig.load(file, msg -> fail(msg));
+        assertEquals(1.0f, c.pinnedTextScale);
+        assertEquals(1.0f, c.pinnedBackgroundOpacity);
+    }
+
+    @Test
     void reportsUnreadableFile() throws Exception {
         Path file = dir.resolve("notedown.json");
         Files.writeString(file, "{ not json");
