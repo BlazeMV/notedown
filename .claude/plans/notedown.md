@@ -15,7 +15,7 @@
 - Mod id `notedown`, package `dev.blaze.notedown`, MIT license, `minecraft ">=26.2 <27.1"`, `java ">=25"`, `fabricloader ">=0.19.0"`, `fabric-api "*"`.
 - Client-only mod: `"environment": "client"`, all code under `src/client/java` (Loom `splitEnvironmentSourceSets()`), tests under `src/test/java`.
 - No config or UI library. No vanilla button/edit-box/list visuals: every screen and the HUD draw through the `ui` kit. Mod Menu is an optional entrypoint.
-- No mixins. One access widener `src/client/resources/notedown.accesswidener` with exactly two entries (`MultiLineEditBox` `<init>` and `textField`).
+- No mixins. One access widener `src/client/resources/notedown.accesswidener` (namespace `official`) with three entries: `MultiLineEditBox` `<init>` and `textField`, and the class `MultilineTextField$StringView` (protected in 26.2; needed for the selection range).
 - Every user-visible string goes through `assets/notedown/lang/en_us.json` via `Messages.t(key, args)` (`notedown.` prefix) or `Component.translatable` for `key.*` entries.
 - Notes live in `<gamedir>/notedown/`, settings in `config/notedown.json`.
 - Commits: single line, brief, lower-case. Branch `master`.

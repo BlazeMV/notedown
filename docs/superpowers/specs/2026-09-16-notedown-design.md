@@ -15,7 +15,7 @@ Goal: a Fabric client mod for Minecraft 26.2+ with a markdown notebook — multi
 | Settings | `config/notedown.json`, Gson, no config library |
 | Notes data | `<gamedir>/notedown/` |
 | UI | own flat widget kit (`ui` unit), no vanilla button/edit-box/list visuals anywhere |
-| Mixins / AW | no mixins; one access widener with two entries on `MultiLineEditBox` (`<init>`, `textField`) |
+| Mixins / AW | no mixins; one access widener with three entries: `MultiLineEditBox` `<init>` and `textField`, and the protected `MultilineTextField$StringView` class (selection range) |
 | Repo | `~/projects/blaze/notedown`, branch `master`, CI + `scripts/dev-install.sh` as in panoramix |
 
 ## Architecture
