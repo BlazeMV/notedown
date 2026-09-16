@@ -82,14 +82,14 @@ Supported:
 | Strikethrough | `~~x~~` | strikethrough |
 | Inline code | `` `x` `` | light fill, muted text |
 | Code block | fenced / indented | darker panel, no wrap, clipped |
-| Bullet list | `-` `*` `+`, nested | `•` `◦` `▪` by depth, 10 px per level |
+| Bullet list | `-` `*` `+`, nested | `•` `◦` `▪` by depth, 12 px per level (`MARKER_WIDTH`); ordered lists widen the gutter to the widest number |
 | Ordered list | `1.` | number from start value |
-| Task list | `- [ ]` `- [x]` | 9×9 box, accent tick; checked text muted + struck (setting) |
-| Blockquote | `> x` | 2 px accent bar, muted, indented |
+| Task list | `- [ ]` `- [x]` | 9×9 box, filled accent square when checked; checked text muted + struck (setting) |
+| Blockquote | `> x` | 2 px accent-dark bar, muted, indented |
 | Rule | `---` | 1 px line |
 | Link | `[t](url)` | underlined accent; click → confirm dialog → `Util.getPlatform().openUri` |
 | Breaks | blank line; trailing `\` or two spaces | paragraph gap / line break |
-| Not in v1 | tables, images, HTML, footnotes | literal text |
+| Not in v1 | tables, HTML, footnotes | literal text; images render their alt text |
 
 Pipeline:
 1. `MarkdownParser`: commonmark + task-list + strikethrough, source spans on. Never throws.
