@@ -1491,7 +1491,7 @@ git add -A && git commit -m "note store, pin index, current scope"
 **Interfaces:**
 - Consumes: `CheckedTaskStyle` (Task 1).
 - Produces: `interface TextMeasure { int width(String text, boolean bold); int lineHeight(); }`; `record TextStyle(bold, italic, strike, underline, code, muted, String link)` with `NORMAL` and `withX(...)`; `record Layout(List<Line> lines, List<HitBox> hitBoxes, int height)` with nested `Run(text, style, x)`, `Line(x, y, scale, runs, deco, quoted, width)`, `Deco(kind, label, checked, sourceLine)`, `DecoKind`, `HitKind`, `HitBox(kind, x, y, w, h, sourceLine, url)`; `MarkdownParser.parse(String)` → `Node`; `Layouter.layout(Node, int width, CheckedTaskStyle, TextMeasure)` → `Layout`; constants `Layouter.MARKER_WIDTH = 12`, `TASK_BOX = 9`, `QUOTE_INDENT = 8`, `CODE_PAD = 4`, `PARAGRAPH_GAP = 4`, `LINE_GAP = 2`.
-- Layout coordinate rule: all `x`/`y` are unscaled pixels relative to the layout origin. A heading line has `scale > 1`; its `runs[i].x` and `width` are in the line's own scaled space and the renderer applies `translate(line.x, line.y)` then `scale(line.scale)`. Non-heading lines have `scale == 1`.
+- Layout coordinate rule: all `x`/`y` are unscaled pixels relative to the layout origin. A heading line has `scale > 1`; its `runs[i].x` is in the line's own scaled space and the renderer applies `translate(line.x, line.y)` then `scale(line.scale)` before drawing runs. `Line.width` is always unscaled pixels (already multiplied by the scale), like `x` and `y`. Non-heading lines have `scale == 1`.
 
 - [ ] **Step 1: Write the failing tests**
 
