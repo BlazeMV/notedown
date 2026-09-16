@@ -15,6 +15,7 @@ public final class FlatTextArea extends MultiLineEditBox {
     @Override
     protected void extractBackground(GuiGraphicsExtractor g) {
         g.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), isFocused() ? Theme.PANEL_DARK : Theme.PANEL);
+        extractBorder(g, getX(), getY(), getWidth(), getHeight());
     }
 
     @Override

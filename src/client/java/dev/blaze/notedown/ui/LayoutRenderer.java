@@ -40,7 +40,10 @@ public final class LayoutRenderer {
             g.fill(bx, y - 1, bx + 2, y + lh + Layouter.LINE_GAP, Theme.ACCENT_DARK);
         }
         switch (line.deco().kind()) {
-            case BULLET, NUMBER -> g.text(font, line.deco().label(), x - Layouter.MARKER_WIDTH, y, Theme.TEXT_MUTED);
+            case BULLET, NUMBER -> {
+                String label = line.deco().label();
+                g.text(font, label, x - 4 - font.width(label), y, Theme.TEXT_MUTED);
+            }
             case TASK -> {
                 int bx = x - Layouter.MARKER_WIDTH;
                 int by = y + (font.lineHeight - Layouter.TASK_BOX) / 2;
