@@ -76,6 +76,9 @@ public final class Slider extends AbstractWidget {
 
     @Override
     public void onClick(MouseButtonEvent e, boolean doubleClick) {
+        if (e.x() < trackX() || e.x() >= trackX() + TRACK_W) {
+            return;
+        }
         dragging = true;
         setFromMouse(e.x());
     }

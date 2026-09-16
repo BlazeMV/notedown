@@ -33,4 +33,9 @@ public final class FlatTextField extends EditBox {
         }
         super.extractWidgetRenderState(g, mouseX, mouseY, partial);
     }
+
+    @Override
+    public boolean isMouseOver(double mouseX, double mouseY) {
+        return active && visible && mouseX >= panelX && mouseX < panelX + panelW && mouseY >= panelY && mouseY < panelY + panelH;
+    }
 }

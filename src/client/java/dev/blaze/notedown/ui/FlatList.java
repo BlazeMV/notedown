@@ -50,9 +50,13 @@ public final class FlatList<T> extends AbstractWidget {
             selected = -1;
             return;
         }
-        selected = Math.max(0, Math.min(items.size() - 1, index));
+        int next = Math.max(0, Math.min(items.size() - 1, index));
+        boolean changed = next != selected;
+        selected = next;
         ensureVisible();
-        onSelect.accept(items.get(selected));
+        if (changed) {
+            onSelect.accept(items.get(selected));
+        }
     }
 
     public void setBounds(int x, int y, int w, int h) {
