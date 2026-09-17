@@ -1,0 +1,89 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, e.g. 1.0.1 or 1.1.0-beta.1'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Resolve version
+        id: ver
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            v="$INPUT_VERSION"
+          else
+            v="${GITHUB_REF_NAME#v}"
+          fi
+          echo "$v" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$' || { echo "not a semver version: $v"; exit 1; }
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if echo "$v" | grep -q -- '-'; then echo "type=beta" >> "$GITHUB_OUTPUT"; else echo "type=release" >> "$GITHUB_OUTPUT"; fi
+      - name: Create tag
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew build
+        env:
+          MOD_VERSION: ${{ steps.ver.outputs.version }}
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: Notedown ${{ steps.ver.outputs.version }}
+          generate_release_notes: true
+          prerelease: ${{ steps.ver.outputs.type == 'beta' }}
+          files: build/libs/notedown-${{ steps.ver.outputs.version }}.jar
+      - name: Fetch release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: gh release view "v$VERSION" --json body -q .body > changelog.md
+      - name: Publish to Modrinth
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          modrinth-id: notedown
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          files: build/libs/notedown-${{ steps.ver.outputs.version }}.jar
+          name: Notedown ${{ steps.ver.outputs.version }}
+          version: ${{ steps.ver.outputs.version }}
+          version-type: ${{ steps.ver.outputs.type }}
+          changelog-file: changelog.md
+          loaders: fabric
+          game-versions: '26.2'
+          java: 25
+          dependencies: |
+            fabric-api(required)
+            modmenu(optional)
+      - name: Sync Modrinth description
+        run: |
+          jq -n --rawfile body docs/modrinth.md '{body: $body}' > body.json
+          curl -fsS -X PATCH "https://api.modrinth.com/v2/project/notedown" \
+            -H "Authorization: $MODRINTH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -H "User-Agent: BlazeMV/notedown release workflow" \
+            --data @body.json
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}

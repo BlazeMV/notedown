@@ -1,0 +1,34 @@
+name: Bug report
+description: Something is broken
+labels: [bug]
+body:
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Notedown, Minecraft, Fabric Loader, Fabric API
+      placeholder: Notedown 1.0.0, MC 26.2, Loader 0.19.5, Fabric API 0.160.0
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what happened instead
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: Paste the relevant part of `logs/latest.log` or link a paste. Include the crash report if the game crashed.
+  - type: input
+    id: mods
+    attributes:
+      label: Other mods that might matter
+      placeholder: Sodium, Mod Menu, ...
