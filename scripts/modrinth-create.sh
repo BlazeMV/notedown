@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 # One-time: creates the Modrinth project as a draft. Needs MODRINTH_TOKEN with "Create projects" + "Write projects".
 set -euo pipefail
-: "${MODRINTH_TOKEN:?set MODRINTH_TOKEN}"
+if [ -z "${MODRINTH_TOKEN:-}" ]; then
+  printf 'Modrinth token: ' >&2
+  read -rs MODRINTH_TOKEN
+  echo >&2
+fi
 cd "$(dirname "$0")/.."
 DESC=$(python3 -c "import json;print(json.load(open('src/client/resources/fabric.mod.json'))['description'])")
 python3 - "$DESC" > /tmp/notedown-project.json <<'PY'
